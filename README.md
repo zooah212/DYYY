@@ -205,7 +205,7 @@ GITHUB_ACTIONS=true make package
 
 详见 `LICENSE`。
 
-## Star 趋势1
+## Star 趋势
 
 <p align="center">
     <a href="https://star-history.com/#Wtrwx/DYYY">
