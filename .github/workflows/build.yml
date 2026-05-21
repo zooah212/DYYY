@@ -25,7 +25,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v4 #.2.2
         with:
           submodules: true
 
@@ -35,7 +35,7 @@ jobs:
 
       - name: Use cache
         id: cache
-        uses: actions/cache@v4.2.1
+        uses: actions/cache@v4 #.2.1
         with:
           path: ${{ github.workspace }}/theos
           key: ${{ runner.os }}-${{ env.upstream_heads }}
@@ -78,9 +78,10 @@ jobs:
         run: |
           ts=$(TZ=Asia/Shanghai date +%Y%m%d%H%M%S)
           echo "value=$ts" >> $GITHUB_OUTPUT
+          echo "⏰ 构建时间: $ts (Asia/Shanghai)"
           
       - name: Upload specific Deb packages
-        uses: actions/upload-artifact@v4.6.0
+        uses: actions/upload-artifact@v4 #.6.0
         with:
           name: DYYY-${{ steps.timestamp.outputs.value }}
           path: ${{ github.workspace }}/packages/*.deb
