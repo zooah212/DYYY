@@ -1,13 +1,25 @@
 name: build deb
 
 on:
-  push:
-    branches-ignore:
-      - dev
-  pull_request:
-    branches-ignore:
-      - dev
-
+  #push:
+  #  branches-ignore:
+  #    - dev
+  #pull_request:
+  #  branches-ignore:
+  #    - dev
+  workflow_dispatch:  # 👈 仅保留这一行，移除 push/PR 触发
+    inputs:           # 🎁 可选：添加触发参数，方便自定义
+      scheme:
+        description: '打包方案（留空则全打）'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - rootful
+          - rootless
+          - roothide
+          
 jobs:
   build:
     runs-on: macos-latest
@@ -34,18 +46,19 @@ jobs:
       - name: Setup GNU Make
         run: |
           echo "$(brew --prefix)/opt/make/libexec/gnubin" >> $GITHUB_PATH
-          
+
+      - name: Clean packages dir
+        run: rm -rf packages && mkdir -p packages
+        
       - name: Build Rootful
         run: |
-          rm -f packages/*
           make package FINALPACKAGE=1 -j$(sysctl -n hw.ncpu)
           for f in packages/*.deb; do
-            [ -f "$f" ] && [[ "$f" != *"-root"*".deb" ]] && mv "$f" "${f%.deb}-rootless.deb"
+            [ -f "$f" ] && [[ "$f" != *"-root"*".deb" ]] && mv "$f" "${f%.deb}-rootful.deb"
           done
              
       - name: Build Rootless
         run: |
-          rm -f packages/*
           #make package FINALPACKAGE=1 -j$(sysctl -n hw.ncpu)
           make package THEOS_PACKAGE_SCHEME=rootless FINALPACKAGE=1 -j$(sysctl -n hw.ncpu)
           for f in packages/*.deb; do
@@ -54,14 +67,20 @@ jobs:
           
       - name: Build Roothide
         run: |
-          rm -f packages/*
           make package THEOS_PACKAGE_SCHEME=roothide FINALPACKAGE=1 -j$(sysctl -n hw.ncpu)
           for f in packages/*.deb; do
             [ -f "$f" ] && [[ "$f" != *"-root"*".deb" ]] && mv "$f" "${f%.deb}-roothide.deb"
           done
           
+      # 🔹【新增】生成时间戳并写入环境变量
+      - name: Generate Timestamp
+        id: timestamp
+        run: |
+          ts=$(TZ=Asia/Shanghai date +%Y%m%d%H%M%S)
+          echo "value=$ts" >> $GITHUB_OUTPUT
+          
       - name: Upload specific Deb packages
         uses: actions/upload-artifact@v4.6.0
         with:
-          name: DYYY
+          name: DYYY-${{ steps.timestamp.outputs.value }}
           path: ${{ github.workspace }}/packages/*.deb
