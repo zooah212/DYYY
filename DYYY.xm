@@ -3437,6 +3437,8 @@ static BOOL hasChangedSpeed = NO;
 static CGFloat currentLongPressSpeed = 0;
 static CGFloat initialTouchX = 0;
 static BOOL isGestureActive = NO;
+static CGFloat dyyyLongPressInitialTouchY = 0;
+static BOOL dyyyLongPressHasInitialTouchY = NO;
 
 - (CGFloat)longPressFastSpeedValue {
     float longPressSpeed = DYYYGetFloat(@"DYYYLongPressSpeed");
@@ -3472,6 +3474,89 @@ static BOOL isGestureActive = NO;
 
     // 兜底：所有未匹配的路径一律透传原始 speed，避免速度变更被静默丢弃
     %orig(speed);
+}
+
+// 长按倍速开始：用自定义倍速替代默认 2x，并初始化手势状态
+- (void)handleLongPressLockedSpeedBegan {
+    if (DYYYGetBool(@"DYYYEnableLongPressSpeedGesture")) {
+        isGestureActive = YES;
+        float longPressSpeed = DYYYGetFloat(@"DYYYLongPressSpeed");
+        if (longPressSpeed == 0) {
+            longPressSpeed = 2.0;
+        }
+        currentLongPressSpeed = longPressSpeed;
+    }
+
+    float longPressSpeed = DYYYGetFloat(@"DYYYLongPressSpeed");
+    if (longPressSpeed != 0 && longPressSpeed != 2.0) {
+        // 用自定义倍速值先调 changeSpeed:，让原方法内部的 2x 逻辑被替换
+        [self changeSpeed:longPressSpeed];
+    }
+    %orig;
+}
+
+// 长按倍速变更回调：拦截并替换倍速值
+- (void)longPressSpeedControlDidChangeSpeed:(double)speed {
+    float longPressSpeed = DYYYGetFloat(@"DYYYLongPressSpeed");
+
+    // 长按手势激活中：强制使用手势速度
+    if (isGestureActive && currentLongPressSpeed > 0) {
+        %orig(currentLongPressSpeed);
+        return;
+    }
+
+    // 原始 2x 切换逻辑
+    if (speed == 2.0) {
+        if (longPressSpeed != 0 && longPressSpeed != 2.0) {
+            %orig(longPressSpeed);
+            return;
+        }
+    }
+
+    %orig(speed);
+}
+
+// 长按移动回调：支持上下滑动调整倍速（DYYYEnableLongPressSpeedGesture）
+- (void)handleLongPressLockedDoubleSpeedChanged:(id)arg1 gesture:(UIGestureRecognizer *)gesture {
+    if (DYYYGetBool(@"DYYYEnableLongPressSpeedGesture") && isGestureActive) {
+        CGPoint location = [gesture locationInView:gesture.view];
+
+        if (gesture.state == UIGestureRecognizerStateChanged) {
+            // 首次进入 Changed 时记录初始 Y
+            if (!dyyyLongPressHasInitialTouchY) {
+                dyyyLongPressInitialTouchY = location.y;
+                dyyyLongPressHasInitialTouchY = YES;
+            }
+
+            CGFloat deltaY = location.y - dyyyLongPressInitialTouchY;
+            CGFloat threshold = 10.0;
+
+            if (fabs(deltaY) > threshold) {
+                CGFloat speedChange = (deltaY > 0) ? 0.25 : -0.25;
+                CGFloat newSpeed = currentLongPressSpeed + speedChange;
+                newSpeed = MAX(0.5, MIN(3.0, newSpeed));
+
+                if (newSpeed != currentLongPressSpeed) {
+                    currentLongPressSpeed = newSpeed;
+                    dyyyLongPressInitialTouchY = location.y;
+                    [self longPressSpeedControlDidChangeSpeed:currentLongPressSpeed];
+                }
+            }
+        }
+    }
+
+    %orig;
+}
+
+// 长按结束：重置手势状态
+- (void)handleLongPressLockedDoubleSpeedEnded:(id)arg1 gesture:(UIGestureRecognizer *)gesture {
+    if (DYYYGetBool(@"DYYYEnableLongPressSpeedGesture")) {
+        isGestureActive = NO;
+        currentLongPressSpeed = 0;
+        dyyyLongPressHasInitialTouchY = NO;
+        dyyyLongPressInitialTouchY = 0;
+    }
+    %orig;
 }
 
 - (void)handleLongPressFastSpeed:(UILongPressGestureRecognizer *)gesture {
