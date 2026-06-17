@@ -3449,11 +3449,13 @@ static BOOL isGestureActive = NO;
 - (void)changeSpeed:(double)speed {
     float longPressSpeed = DYYYGetFloat(@"DYYYLongPressSpeed");
 
+    // 长按手势激活中：强制使用手势速度
     if (isGestureActive && currentLongPressSpeed > 0) {
         %orig(currentLongPressSpeed);
         return;
     }
 
+    // 原始 2x 切换逻辑（原生长按倍速 / 手动 2x 按钮）
     if (speed == 2.0) {
         if (!hasChangedSpeed) {
             if (longPressSpeed != 0 && longPressSpeed != 2.0) {
@@ -3468,10 +3470,8 @@ static BOOL isGestureActive = NO;
         }
     }
 
-    if (longPressSpeed == 0 || longPressSpeed == 2) {
-        %orig(speed);
-        return;
-    }
+    // 兜底：所有未匹配的路径一律透传原始 speed，避免速度变更被静默丢弃
+    %orig(speed);
 }
 
 - (void)handleLongPressFastSpeed:(UILongPressGestureRecognizer *)gesture {
@@ -8586,6 +8586,17 @@ static Class tabBarButtonClass = nil;
 
 %hook AWEAwemePlayVideoViewController
 
+- (void)setVideoControllerPlaybackRate:(double)speed {
+    // 暂停恢复等操作会将倍速重置为 1.0，拦截并替换为用户配置的倍速
+    if (DYYYShouldHandleSpeedFeatures() && fabs(speed - 1.0) <= DBL_EPSILON) {
+        double configuredSpeed = DYYYConfiguredPlaybackSpeed();
+        if (fabs(configuredSpeed - 1.0) > DBL_EPSILON) {
+            speed = configuredSpeed;
+        }
+    }
+    %orig(speed);
+}
+
 - (void)setIsAutoPlay:(BOOL)arg0 {
     %orig(arg0);
     DYYYApplyPreparedPlaybackSpeedToPlayer(self);
@@ -8609,6 +8620,17 @@ static Class tabBarButtonClass = nil;
 %end
 
 %hook AWEDPlayerFeedPlayerViewController
+
+- (void)setVideoControllerPlaybackRate:(double)speed {
+    // 暂停恢复等操作会将倍速重置为 1.0，拦截并替换为用户配置的倍速
+    if (DYYYShouldHandleSpeedFeatures() && fabs(speed - 1.0) <= DBL_EPSILON) {
+        double configuredSpeed = DYYYConfiguredPlaybackSpeed();
+        if (fabs(configuredSpeed - 1.0) > DBL_EPSILON) {
+            speed = configuredSpeed;
+        }
+    }
+    %orig(speed);
+}
 
 - (void)viewDidLayoutSubviews {
     %orig;
@@ -8651,6 +8673,17 @@ static Class tabBarButtonClass = nil;
 %end
 
 %hook AWEDPlayerViewController_Merge
+
+- (void)setVideoControllerPlaybackRate:(double)speed {
+    // 暂停恢复等操作会将倍速重置为 1.0，拦截并替换为用户配置的倍速
+    if (DYYYShouldHandleSpeedFeatures() && fabs(speed - 1.0) <= DBL_EPSILON) {
+        double configuredSpeed = DYYYConfiguredPlaybackSpeed();
+        if (fabs(configuredSpeed - 1.0) > DBL_EPSILON) {
+            speed = configuredSpeed;
+        }
+    }
+    %orig(speed);
+}
 
 - (void)viewDidLayoutSubviews {
     %orig;
