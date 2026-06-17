@@ -3449,13 +3449,11 @@ static BOOL isGestureActive = NO;
 - (void)changeSpeed:(double)speed {
     float longPressSpeed = DYYYGetFloat(@"DYYYLongPressSpeed");
 
-    // 长按手势激活中：强制使用手势速度
     if (isGestureActive && currentLongPressSpeed > 0) {
         %orig(currentLongPressSpeed);
         return;
     }
 
-    // 原始 2x 切换逻辑（原生长按倍速 / 手动 2x 按钮）
     if (speed == 2.0) {
         if (!hasChangedSpeed) {
             if (longPressSpeed != 0 && longPressSpeed != 2.0) {
@@ -3470,8 +3468,10 @@ static BOOL isGestureActive = NO;
         }
     }
 
-    // 兜底：所有未匹配的路径一律透传原始 speed，避免速度变更被静默丢弃
-    %orig(speed);
+    if (longPressSpeed == 0 || longPressSpeed == 2) {
+        %orig(speed);
+        return;
+    }
 }
 
 - (void)handleLongPressFastSpeed:(UILongPressGestureRecognizer *)gesture {
