@@ -872,13 +872,15 @@ void reloadClearButtonConfiguration(void) {
     [self.edgeIndicatorView removeFromSuperview];
 }
 
-// 清屏隐藏状态栏：触发状态栏外观更新
+// 清屏隐藏状态栏：触发状态栏外观更新（延迟到下一个 runloop，避免与 hideUIElements 的视图操作冲突）
 - (void)dyyy_updateStatusBarVisibility {
-    UIViewController *vc = [DYYYUtils topView];
-    while (vc) {
-        [vc setNeedsStatusBarAppearanceUpdate];
-        vc = vc.parentViewController;
-    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIViewController *vc = [DYYYUtils topView];
+        while (vc) {
+            [vc setNeedsStatusBarAppearanceUpdate];
+            vc = vc.parentViewController;
+        }
+    });
 }
 
 @end
