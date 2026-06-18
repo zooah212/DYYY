@@ -5151,7 +5151,7 @@ static void DYYYApplyAvatarFollowPromptSettingsWithRetry(id owner) {
 // 隐藏状态栏
 %hook AWEFeedRootViewController
 - (BOOL)prefersStatusBarHidden {
-    if (DYYYGetBool(@"DYYYHideStatusbar")) {
+    if (DYYYGetBool(@"DYYYHideStatusbar") || dyyyClearScreenHidesStatusBar) {
         return YES;
     } else {
         if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) != class_getInstanceMethod([%c(AWEFeedRootViewController) class], @selector(prefersStatusBarHidden))) {
@@ -5165,7 +5165,7 @@ static void DYYYApplyAvatarFollowPromptSettingsWithRetry(id owner) {
 // 直播状态栏
 %hook IESLiveAudienceViewController
 - (BOOL)prefersStatusBarHidden {
-    if (DYYYGetBool(@"DYYYHideStatusbar")) {
+    if (DYYYGetBool(@"DYYYHideStatusbar") || dyyyClearScreenHidesStatusBar) {
         return YES;
     } else {
         if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) !=
@@ -5180,7 +5180,7 @@ static void DYYYApplyAvatarFollowPromptSettingsWithRetry(id owner) {
 // 主页状态栏
 %hook AWEAwemeDetailTableViewController
 - (BOOL)prefersStatusBarHidden {
-    if (DYYYGetBool(@"DYYYHideStatusbar")) {
+    if (DYYYGetBool(@"DYYYHideStatusbar") || dyyyClearScreenHidesStatusBar) {
         return YES;
     } else {
         if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) !=
@@ -5195,7 +5195,7 @@ static void DYYYApplyAvatarFollowPromptSettingsWithRetry(id owner) {
 // 热点状态栏
 %hook AWEAwemeHotSpotTableViewController
 - (BOOL)prefersStatusBarHidden {
-    if (DYYYGetBool(@"DYYYHideStatusbar")) {
+    if (DYYYGetBool(@"DYYYHideStatusbar") || dyyyClearScreenHidesStatusBar) {
         return YES;
     } else {
         if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) !=
@@ -5210,7 +5210,7 @@ static void DYYYApplyAvatarFollowPromptSettingsWithRetry(id owner) {
 // 图文状态栏
 %hook AWEFullPageFeedNewContainerViewController
 - (BOOL)prefersStatusBarHidden {
-    if (DYYYGetBool(@"DYYYHideStatusbar")) {
+    if (DYYYGetBool(@"DYYYHideStatusbar") || dyyyClearScreenHidesStatusBar) {
         return YES;
     } else {
         if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) !=
@@ -5225,7 +5225,7 @@ static void DYYYApplyAvatarFollowPromptSettingsWithRetry(id owner) {
 // 纯净模式状态栏
 %hook AFDPureModePageContainerViewController
 - (BOOL)prefersStatusBarHidden {
-    if (DYYYGetBool(@"DYYYHideStatusbar")) {
+    if (DYYYGetBool(@"DYYYHideStatusbar") || dyyyClearScreenHidesStatusBar) {
         return YES;
     } else {
         if (class_getInstanceMethod([self class], @selector(prefersStatusBarHidden)) !=

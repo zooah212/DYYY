@@ -23,6 +23,7 @@ BOOL isPureViewVisible = NO;
 BOOL clearButtonForceHidden = NO;
 BOOL isAppActive = YES;
 BOOL dyyyIsPerformingFloatClearOperation = NO;
+BOOL dyyyClearScreenHidesStatusBar = NO;
 
 static NSInteger dyyyClearButtonMutationDepth = 0;
 
@@ -708,6 +709,13 @@ void reloadClearButtonConfiguration(void) {
             hideSpeedButton();
         }
 
+        // 清屏隐藏状态栏：仅在全局隐藏状态栏未开启时生效
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYHideStatusBarOnClear"] &&
+            ![[NSUserDefaults standardUserDefaults] boolForKey:@"DYYYHideStatusbar"]) {
+            dyyyClearScreenHidesStatusBar = YES;
+            [self dyyy_updateStatusBarVisibility];
+        }
+
         if (selfHide) {
             [self dyyy_applySelfHiddenAlpha];
         }
@@ -725,6 +733,12 @@ void reloadClearButtonConfiguration(void) {
             // 导致 dyyyInteractionViewVisible 被置 NO，此时仅靠 showSpeedButton() 无法让倍速按钮重新出现，
             // 必须重新从当前可见 controller 备份状态。
             DYYYRefreshFloatSpeedButton();
+        }
+
+        // 清屏隐藏状态栏：恢复状态栏
+        if (dyyyClearScreenHidesStatusBar) {
+            dyyyClearScreenHidesStatusBar = NO;
+            [self dyyy_updateStatusBarVisibility];
         }
 
         // 退出清屏，恢复正常透明度并重启淡出
@@ -857,4 +871,14 @@ void reloadClearButtonConfiguration(void) {
     [self stopTimers];
     [self.edgeIndicatorView removeFromSuperview];
 }
+
+// 清屏隐藏状态栏：触发状态栏外观更新
+- (void)dyyy_updateStatusBarVisibility {
+    UIViewController *vc = [DYYYUtils topView];
+    while (vc) {
+        [vc setNeedsStatusBarAppearanceUpdate];
+        vc = vc.parentViewController;
+    }
+}
+
 @end

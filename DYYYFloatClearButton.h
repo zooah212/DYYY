@@ -16,6 +16,7 @@ extern BOOL isAppInTransition;
 extern NSArray *targetClassNames;
 extern BOOL dyyyInteractionViewVisible;
 extern BOOL dyyyCommentViewVisible;
+extern BOOL dyyyClearScreenHidesStatusBar;
 
 UIWindow *getKeyWindow(void);
 

@@ -3368,6 +3368,15 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
           @"imageName" : @"ic_eyeslash_outlined_16"
       }];
       [clearButtonItems addObject:hidePauseVideoIcon];
+      AWESettingItemModel *hideStatusBarOnClear = [DYYYSettingsHelper createSettingItem:@{
+          @"identifier" : @"DYYYHideStatusBarOnClear",
+          @"title" : @"清屏隐藏状态栏",
+          @"subTitle" : @"清屏时隐藏系统状态栏，退出清屏后恢复（全局隐藏状态栏开启时无效）",
+          @"detail" : @"",
+          @"cellType" : @37,
+          @"imageName" : @"ic_eyeslash_outlined_16"
+      }];
+      [clearButtonItems addObject:hideStatusBarOnClear];
       NSMutableArray<AWESettingItemModel *> *clearDependentItems = [NSMutableArray array];
       for (AWESettingItemModel *item in clearButtonItems) {
           if (item != enableClearButton) {
