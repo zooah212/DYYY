@@ -872,13 +872,25 @@ void reloadClearButtonConfiguration(void) {
     [self.edgeIndicatorView removeFromSuperview];
 }
 
-// 清屏隐藏状态栏：触发状态栏外观更新（延迟到下一个 runloop，避免与 hideUIElements 的视图操作冲突）
+// 清屏隐藏状态栏：触发状态栏外观更新
+// 调用点改为 root VC（布局更稳定），减小对交互层的级联影响；
+// 并在下一个 runloop 重新 hideUIElements，修复布局后可能恢复显示的图标
 - (void)dyyy_updateStatusBarVisibility {
+    __weak HideUIButton *weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
-        UIViewController *vc = [DYYYUtils topView];
-        while (vc) {
-            [vc setNeedsStatusBarAppearanceUpdate];
-            vc = vc.parentViewController;
+        UIViewController *rootVC = [DYYYUtils getActiveWindow].rootViewController;
+        if (rootVC) {
+            [rootVC setNeedsStatusBarAppearanceUpdate];
+        }
+        // 状态栏布局可能导致某些视图恢复，延迟一个 runloop 重新隐藏以稳定 UI 状态
+        __strong HideUIButton *strongSelf = weakSelf;
+        if (strongSelf && strongSelf.isElementsHidden) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                __strong HideUIButton *btn = weakSelf;
+                if (btn && btn.isElementsHidden) {
+                    [btn hideUIElements];
+                }
+            });
         }
     });
 }
